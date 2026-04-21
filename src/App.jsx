@@ -252,7 +252,7 @@ export default function App() {
               <LineChart data={history} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} tickFormatter={(tick) => tick.substring(0, 4)} />
-                <YAxis stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" scale="log" domain={['auto', 'auto']} tickFormatter={(tick) => '$' + tick.toLocaleString()} />
                 
                 {outMarketPeriods && outMarketPeriods.map((period, idx) => (
                   <ReferenceArea key={idx} x1={period.start} x2={period.end} fill="#334155" fillOpacity={0.3} />
