@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea } from 'recharts';
 import { runBacktest } from './backtest';
 
 function formatPct(val) {
@@ -49,7 +49,7 @@ export default function App() {
     return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Not enough data or invalid parameters.</div>;
   }
 
-  const { history, metrics } = backtestResult;
+  const { history, metrics, outMarketPeriods } = backtestResult;
   
   // Custom Tooltip for Chart
   const CustomTooltip = ({ active, payload, label }) => {
@@ -144,6 +144,11 @@ export default function App() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} tickFormatter={(tick) => tick.substring(0, 4)} />
                 <YAxis stroke="#94a3b8" />
+                
+                {outMarketPeriods && outMarketPeriods.map((period, idx) => (
+                  <ReferenceArea key={idx} x1={period.start} x2={period.end} fill="#334155" fillOpacity={0.3} />
+                ))}
+
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line type="monotone" dataKey="Strategy" stroke="#3b82f6" dot={false} strokeWidth={2} />

@@ -46,6 +46,9 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
   let inMarket = false;
   let entryPrice = 0;
   
+  let outStart = filteredData[0].date;
+  const outMarketPeriods = [];
+  
   let peakValue = cash;
   let maxDrawdown = 0;
   
@@ -67,10 +70,15 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
     if (prev && prev.close > prev.sma * errFactorBuy && !inMarket) {
         inMarket = true;
         entryPrice = today.close;
+        if (outStart) {
+            outMarketPeriods.push({ start: outStart, end: today.date });
+            outStart = null;
+        }
     } 
     // Sell when crossing from above - threshold buffer
     else if (prev && prev.close < prev.sma * errFactorSell && inMarket) {
         inMarket = false;
+        outStart = today.date;
         // Apply leverage return for this last partial period
         const returnSinceEntry = (today.close - entryPrice) / entryPrice;
         cash = cash * (1 + (returnSinceEntry * leverage));
@@ -106,6 +114,10 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
     });
   }
 
+  if (!inMarket && outStart) {
+      outMarketPeriods.push({ start: outStart, end: filteredData[filteredData.length - 1].date });
+  }
+
   // 4. Calculate Metrics
   const totalReturn = (lastValue - initialPrice) / initialPrice;
   const indexTotalReturn = (history[history.length-1].Index - initialPrice) / initialPrice;
@@ -122,6 +134,7 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
 
   return {
     history,
+    outMarketPeriods,
     metrics: {
       totalReturn,
       cagr,
