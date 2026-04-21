@@ -29,7 +29,8 @@ smastrat() {
   cd "$REPO_DIR" || return
   
   echo "[SMA] Booting up Vite..."
-  nohup npm run dev -- --port 3000 --strictPort > /dev/null 2>&1 &
+  # Fully detach the Vite server strictly surviving terminal exit
+  (nohup ./node_modules/.bin/vite --port 3000 --strictPort > /dev/null 2>&1 & disown)
   
   echo "[SMA] Opening browser..."
   sleep 2

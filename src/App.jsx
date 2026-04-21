@@ -13,7 +13,7 @@ function formatCcy(val) {
 }
 
 export default function App() {
-  const [data, setData] = useState([]);
+  const [datasets, setDatasets] = useState(null);
   const [loading, setLoading] = useState(true);
   
   const [assetName, setAssetName] = useState('sp500');
@@ -40,17 +40,21 @@ export default function App() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/${assetName}.json`)
-      .then(res => res.json())
-      .then(json => {
-        setData(json.records);
+    const assets = ['sp500', 'nasdaq', 'dax', 'gold', 'silver'];
+    Promise.all(assets.map(a => fetch(`/${a}.json`).then(r => r.json()).then(j => ({ name: a, data: j.records }))))
+      .then(results => {
+        const dict = {};
+        results.forEach(r => { dict[r.name] = r.data; });
+        setDatasets(dict);
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to load data", err);
+        console.error("Failed to load dataset bundle", err);
         setLoading(false);
       });
-  }, [assetName]);
+  }, []);
+
+  const data = datasets ? datasets[assetName] : [];
 
   const backtestResult = useMemo(() => {
     if (loading || data.length === 0) return null;
