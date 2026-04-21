@@ -1,31 +1,80 @@
 /**
  * Core backtesting logic.
  * @param {Array} rawData - Array of {date, close}
- * @param {number} smaLength - SMA period in days (e.g., 200 for 200 days, 1000 for 200 weeks)
+ * @param {number} smaLength - SMA period count
+ * @param {string} smaUnit - 'days' | 'weeks'
  * @param {number} leverage - Leverage multiplier (e.g., 1, 1.5, 2)
  * @param {number} errorMarginPct - Execution slip/error in percent (e.g., 1 for 1%)
  * @param {string} startDate - YYYY-MM-DD
  * @param {string} endDate - YYYY-MM-DD
  */
-export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startDate, endDate) {
-  if (!rawData || rawData.length < smaLength) return { history: [], metrics: null };
+export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPct, startDate, endDate) {
+  if (!rawData || rawData.length < (smaUnit === 'weeks' ? smaLength * 4 : smaLength)) return { history: [], metrics: null };
 
-  // 1. Precompute SMA for the entire dataset
   const dataWithSma = [];
-  let sum = 0;
   
-  for (let i = 0; i < rawData.length; i++) {
-    sum += rawData[i].close;
-    if (i >= smaLength) {
-      sum -= rawData[i - smaLength].close;
+  if (smaUnit === 'weeks') {
+    const weeklyCloses = [];
+    const weeklySmas = [];
+    let sum = 0;
+    
+    const eows = [];
+    for(let i=0; i < rawData.length; i++) {
+        const todayDate = new Date(rawData[i].date);
+        const tomorrow = i+1 < rawData.length ? new Date(rawData[i+1].date) : null;
+        // End of week logic: if tomorrow's weekday number is <= today's, the week flipped
+        // e.g. Friday (5) -> Monday (1), 1 <= 5 true
+        if (!tomorrow || tomorrow.getDay() <= todayDate.getDay()) {
+            weeklyCloses.push(rawData[i].close);
+            sum += rawData[i].close;
+            if (weeklyCloses.length > smaLength) {
+                sum -= weeklyCloses[weeklyCloses.length - 1 - smaLength];
+            }
+            if (weeklyCloses.length >= smaLength) {
+                weeklySmas.push(sum / smaLength);
+            } else {
+                weeklySmas.push(null);
+            }
+            eows.push(i);
+        }
     }
     
-    if (i >= smaLength - 1) {
-      dataWithSma.push({
-        date: rawData[i].date,
-        close: rawData[i].close,
-        sma: sum / smaLength
-      });
+    // Assign latest finalized weekly SMA to daily points
+    let currentSma = null;
+    let eowPointer = 0;
+    for(let i=0; i < rawData.length; i++) {
+        // We write the current finalized SMA to today.
+        // This ensures no look-ahead. The SMA only updates AFTER the week fully ends.
+        if (currentSma !== null) {
+            dataWithSma.push({
+                date: rawData[i].date,
+                close: rawData[i].close,
+                sma: currentSma
+            });
+        }
+        
+        // If today is an end-of-week, the finalized SMA unlocks for tomorrow onwards
+        if (eowPointer < eows.length && i === eows[eowPointer]) {
+            currentSma = weeklySmas[eowPointer];
+            eowPointer++;
+        }
+    }
+  } else {
+    // Native daily SMA
+    let sum = 0;
+    for (let i = 0; i < rawData.length; i++) {
+      sum += rawData[i].close;
+      if (i >= smaLength) {
+        sum -= rawData[i - smaLength].close;
+      }
+      
+      if (i >= smaLength - 1) {
+        dataWithSma.push({
+          date: rawData[i].date,
+          close: rawData[i].close,
+          sma: sum / smaLength
+        });
+      }
     }
   }
 
@@ -40,8 +89,6 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
   // 3. Run Strategy
   const initialPrice = filteredData[0].close;
   let cash = initialPrice;
-  
-  // Buy & Hold base comparison
   
   let inMarket = false;
   let entryPrice = 0;

@@ -17,9 +17,15 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   // Strategy Parameters
-  const [sma1, setSma1] = useState(1000); 
+  const [sma1Unit, setSma1Unit] = useState('weeks');
+  const [sma1, setSma1] = useState(200); 
+  
+  const [sma2Unit, setSma2Unit] = useState('days');
   const [sma2, setSma2] = useState(250);  
+  
+  const [sma3Unit, setSma3Unit] = useState('days');
   const [sma3, setSma3] = useState(50);   
+  
   const [showStrat2, setShowStrat2] = useState(true);
   const [showStrat3, setShowStrat3] = useState(true);
   const [leverage, setLeverage] = useState(1);
@@ -43,9 +49,9 @@ export default function App() {
   const backtestResult = useMemo(() => {
     if (loading || data.length === 0) return null;
     
-    const res1 = runBacktest(data, sma1, leverage, errorMargin, startDate, endDate);
-    const res2 = showStrat2 ? runBacktest(data, sma2, leverage, errorMargin, startDate, endDate) : null;
-    const res3 = showStrat3 ? runBacktest(data, sma3, leverage, errorMargin, startDate, endDate) : null;
+    const res1 = runBacktest(data, sma1, sma1Unit, leverage, errorMargin, startDate, endDate);
+    const res2 = showStrat2 ? runBacktest(data, sma2, sma2Unit, leverage, errorMargin, startDate, endDate) : null;
+    const res3 = showStrat3 ? runBacktest(data, sma3, sma3Unit, leverage, errorMargin, startDate, endDate) : null;
     
     if (!res1 || !res1.history || res1.history.length === 0) return null;
 
@@ -64,12 +70,12 @@ export default function App() {
 
     return {
       history: mergedHistory,
-      outMarketPeriods: res1.outMarketPeriods, // Shading based on primary SMA
+      outMarketPeriods: res1.outMarketPeriods,
       metrics1: res1.metrics,
       metrics2: res2 ? res2.metrics : null,
       metrics3: res3 ? res3.metrics : null
     };
-  }, [data, loading, sma1, sma2, sma3, showStrat2, showStrat3, leverage, errorMargin, startDate, endDate]);
+  }, [data, loading, sma1, sma1Unit, sma2, sma2Unit, sma3, sma3Unit, showStrat2, showStrat3, leverage, errorMargin, startDate, endDate]);
 
   if (loading) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Loading dataset...</div>;
   if (!backtestResult) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Not enough data.</div>;
@@ -95,6 +101,8 @@ export default function App() {
     return null;
   };
 
+  const getLabel = (stratNum, sma, unit) => `Strategy ${stratNum} (${sma}${unit === 'weeks' ? 'w' : 'd'})`;
+
   return (
     <div className="dashboard-container">
       <header>
@@ -107,22 +115,41 @@ export default function App() {
           <h3>Parameters</h3>
           
           <div className="input-group">
-            <label>Strategy 1: SMA <span style={{color: '#3b82f6'}}>{sma1}d</span></label>
-            <input type="range" min="10" max="2500" step="10" value={sma1} onChange={e => setSma1(Number(e.target.value))} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{color: '#3b82f6', fontWeight: 'bold'}}>Strat 1</span>
+              <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma1} onChange={e => setSma1(Number(e.target.value))} />
+              <select value={sma1Unit} onChange={e => setSma1Unit(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}}>
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+              </select>
+            </label>
+            <input type="range" min="1" max={sma1Unit === 'weeks' ? 500 : 2500} step="1" value={sma1} onChange={e => setSma1(Number(e.target.value))} />
           </div>
+
           <div className="input-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input type="checkbox" checked={showStrat2} onChange={e => setShowStrat2(e.target.checked)} />
-              Strategy 2: SMA <span style={{color: '#10b981'}}>{sma2}d</span>
+              <span style={{color: '#10b981', fontWeight: 'bold'}}>Strat 2</span>
+              <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma2} onChange={e => setSma2(Number(e.target.value))} />
+              <select value={sma2Unit} onChange={e => setSma2Unit(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}}>
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+              </select>
             </label>
-            {showStrat2 && <input type="range" min="10" max="2500" step="10" value={sma2} onChange={e => setSma2(Number(e.target.value))} />}
+            {showStrat2 && <input type="range" min="1" max={sma2Unit === 'weeks' ? 500 : 2500} step="1" value={sma2} onChange={e => setSma2(Number(e.target.value))} />}
           </div>
+
           <div className="input-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input type="checkbox" checked={showStrat3} onChange={e => setShowStrat3(e.target.checked)} />
-              Strategy 3: SMA <span style={{color: '#8b5cf6'}}>{sma3}d</span>
+              <span style={{color: '#8b5cf6', fontWeight: 'bold'}}>Strat 3</span>
+              <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma3} onChange={e => setSma3(Number(e.target.value))} />
+              <select value={sma3Unit} onChange={e => setSma3Unit(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}}>
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+              </select>
             </label>
-            {showStrat3 && <input type="range" min="10" max="2500" step="10" value={sma3} onChange={e => setSma3(Number(e.target.value))} />}
+            {showStrat3 && <input type="range" min="1" max={sma3Unit === 'weeks' ? 500 : 2500} step="1" value={sma3} onChange={e => setSma3(Number(e.target.value))} />}
           </div>
 
           <div className="input-group" style={{ marginTop: '1rem' }}>
@@ -167,7 +194,7 @@ export default function App() {
                   <td style={{ padding: '0.5rem' }}>-</td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '0.5rem', color: '#3b82f6' }}>Strat 1 ({sma1}d)</td>
+                  <td style={{ padding: '0.5rem', color: '#3b82f6' }}>{getLabel(1, sma1, sma1Unit)}</td>
                   <td style={{ padding: '0.5rem', color: metrics1.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.totalReturn)}</td>
                   <td style={{ padding: '0.5rem', color: metrics1.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.cagr)}</td>
                   <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.maxDrawdown * 100).toFixed(1)}%</td>
@@ -175,7 +202,7 @@ export default function App() {
                 </tr>
                 {showStrat2 && metrics2 && (
                   <tr>
-                    <td style={{ padding: '0.5rem', color: '#10b981' }}>Strat 2 ({sma2}d)</td>
+                    <td style={{ padding: '0.5rem', color: '#10b981' }}>{getLabel(2, sma2, sma2Unit)}</td>
                     <td style={{ padding: '0.5rem', color: metrics2.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.totalReturn)}</td>
                     <td style={{ padding: '0.5rem', color: metrics2.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
                     <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
@@ -184,7 +211,7 @@ export default function App() {
                 )}
                 {showStrat3 && metrics3 && (
                   <tr>
-                    <td style={{ padding: '0.5rem', color: '#8b5cf6' }}>Strat 3 ({sma3}d)</td>
+                    <td style={{ padding: '0.5rem', color: '#8b5cf6' }}>{getLabel(3, sma3, sma3Unit)}</td>
                     <td style={{ padding: '0.5rem', color: metrics3.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.totalReturn)}</td>
                     <td style={{ padding: '0.5rem', color: metrics3.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
                     <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
@@ -209,12 +236,12 @@ export default function App() {
 
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line type="monotone" name={`Strategy 1 (${sma1}d)`} dataKey="Strategy1" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                {showStrat2 && <Line type="monotone" name={`Strategy 2 (${sma2}d)`} dataKey="Strategy2" stroke="#10b981" dot={false} strokeWidth={2} />}
-                {showStrat3 && <Line type="monotone" name={`Strategy 3 (${sma3}d)`} dataKey="Strategy3" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
+                <Line type="monotone" name={getLabel(1, sma1, sma1Unit)} dataKey="Strategy1" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit)} dataKey="Strategy2" stroke="#10b981" dot={false} strokeWidth={2} />}
+                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit)} dataKey="Strategy3" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
                 
                 <Line type="monotone" name="Index" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
-                <Line type="monotone" name={`SMA 1 (${sma1}d)`} dataKey="SMA1" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
+                <Line type="monotone" name={`SMA 1 (${sma1}${sma1Unit === 'weeks' ? 'w' : 'd'})`} dataKey="SMA1" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
               </LineChart>
             </ResponsiveContainer>
           </div>
