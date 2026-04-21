@@ -55,9 +55,9 @@ export default function App() {
   const backtestResult = useMemo(() => {
     if (loading || data.length === 0) return null;
     
-    const res1 = runBacktest(data, sma1, sma1Unit, leverage, errorMargin, startDate, endDate);
-    const res2 = showStrat2 ? runBacktest(data, sma2, sma2Unit, leverage, errorMargin, startDate, endDate) : null;
-    const res3 = showStrat3 ? runBacktest(data, sma3, sma3Unit, leverage, errorMargin, startDate, endDate) : null;
+    const res1 = runBacktest(data, sma1, sma1Unit, leverage, errorMargin, startDate, endDate, useMM, mmApr);
+    const res2 = showStrat2 ? runBacktest(data, sma2, sma2Unit, leverage, errorMargin, startDate, endDate, useMM, mmApr) : null;
+    const res3 = showStrat3 ? runBacktest(data, sma3, sma3Unit, leverage, errorMargin, startDate, endDate, useMM, mmApr) : null;
     
     if (!res1 || !res1.history || res1.history.length === 0) return null;
 
