@@ -19,6 +19,15 @@ export default function App() {
   const [assetName, setAssetName] = useState('sp500');
   const [useMM, setUseMM] = useState(false);
   const [mmApr, setMmApr] = useState(4.0);
+  const [isFeminine, setIsFeminine] = useState(false);
+
+  useEffect(() => {
+    if (isFeminine) {
+      document.body.classList.add('feminine-theme');
+    } else {
+      document.body.classList.remove('feminine-theme');
+    }
+  }, [isFeminine]);
   
   // Strategy Parameters
   const [sma1Unit, setSma1Unit] = useState('weeks');
@@ -135,6 +144,11 @@ export default function App() {
 
   const getLabel = (stratNum, sma, unit) => `Strategy ${stratNum} (${sma}${unit === 'weeks' ? 'w' : 'd'})`;
 
+  const color1 = isFeminine ? "#ec4899" : "#3b82f6";
+  const color2 = isFeminine ? "#d946ef" : "#10b981";
+  const color3 = isFeminine ? "#8b5cf6" : "#8b5cf6";
+  const colorIdx = isFeminine ? "#be185d" : "#eab308";
+
   return (
     <div className="dashboard-container">
       <header>
@@ -148,7 +162,7 @@ export default function App() {
           
           <div className="input-group">
             <label>Asset</label>
-            <select value={assetName} onChange={e => setAssetName(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px', width: '100%', marginBottom: '1rem'}}>
+            <select value={assetName} onChange={e => setAssetName(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px', width: '100%', marginBottom: '1rem'}}>
                 <option value="sp500">S&P 500 (^GSPC)</option>
                 <option value="nasdaq">Nasdaq Composite (^IXIC)</option>
                 <option value="dax">German DAX (^GDAXI)</option>
@@ -158,6 +172,13 @@ export default function App() {
           </div>
 
           <div className="input-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input type="checkbox" checked={isFeminine} onChange={e => setIsFeminine(e.target.checked)} />
+              🦋 Stylish Interface
+            </label>
+          </div>
+
+          <div className="input-group" style={{ marginTop: '1rem' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{color: '#3b82f6', fontWeight: 'bold'}}>Strat 1</span>
               <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma1} onChange={e => setSma1(Number(e.target.value))} />
@@ -172,9 +193,9 @@ export default function App() {
           <div className="input-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input type="checkbox" checked={showStrat2} onChange={e => setShowStrat2(e.target.checked)} />
-              <span style={{color: '#10b981', fontWeight: 'bold'}}>Strat 2</span>
-              <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma2} onChange={e => setSma2(Number(e.target.value))} />
-              <select value={sma2Unit} onChange={e => setSma2Unit(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}}>
+              <span style={{color: color2, fontWeight: 'bold'}}>Strat 2</span>
+              <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma2} onChange={e => setSma2(Number(e.target.value))} />
+              <select value={sma2Unit} onChange={e => setSma2Unit(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}}>
                 <option value="days">Days</option>
                 <option value="weeks">Weeks</option>
               </select>
@@ -185,9 +206,9 @@ export default function App() {
           <div className="input-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input type="checkbox" checked={showStrat3} onChange={e => setShowStrat3(e.target.checked)} />
-              <span style={{color: '#8b5cf6', fontWeight: 'bold'}}>Strat 3</span>
-              <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma3} onChange={e => setSma3(Number(e.target.value))} />
-              <select value={sma3Unit} onChange={e => setSma3Unit(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}}>
+              <span style={{color: color3, fontWeight: 'bold'}}>Strat 3</span>
+              <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma3} onChange={e => setSma3(Number(e.target.value))} />
+              <select value={sma3Unit} onChange={e => setSma3Unit(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}}>
                 <option value="days">Days</option>
                 <option value="weeks">Weeks</option>
               </select>
@@ -248,7 +269,7 @@ export default function App() {
                   <td style={{ padding: '0.5rem' }}>-</td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '0.5rem', color: '#3b82f6' }}>{getLabel(1, sma1, sma1Unit)}</td>
+                  <td style={{ padding: '0.5rem', color: color1 }}>{getLabel(1, sma1, sma1Unit)}</td>
                   <td style={{ padding: '0.5rem', color: metrics1.totalReturn > metrics1.indexTotalReturn ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.totalReturn)}</td>
                   <td style={{ padding: '0.5rem', color: metrics1.cagr > metrics1.indexCagr ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.cagr)}</td>
                   <td style={{ padding: '0.5rem', color: metrics1.maxDrawdown < metrics1.indexMaxDrawdown ? 'var(--success)' : 'var(--danger)' }}>{(metrics1.maxDrawdown * 100).toFixed(1)}%</td>
@@ -257,7 +278,7 @@ export default function App() {
                 </tr>
                 {showStrat2 && metrics2 && (
                   <tr>
-                    <td style={{ padding: '0.5rem', color: '#10b981' }}>{getLabel(2, sma2, sma2Unit)}</td>
+                    <td style={{ padding: '0.5rem', color: color2 }}>{getLabel(2, sma2, sma2Unit)}</td>
                     <td style={{ padding: '0.5rem', color: metrics2.totalReturn > metrics1.indexTotalReturn ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.totalReturn)}</td>
                     <td style={{ padding: '0.5rem', color: metrics2.cagr > metrics1.indexCagr ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
                     <td style={{ padding: '0.5rem', color: metrics2.maxDrawdown < metrics1.indexMaxDrawdown ? 'var(--success)' : 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
@@ -267,7 +288,7 @@ export default function App() {
                 )}
                 {showStrat3 && metrics3 && (
                   <tr>
-                    <td style={{ padding: '0.5rem', color: '#8b5cf6' }}>{getLabel(3, sma3, sma3Unit)}</td>
+                    <td style={{ padding: '0.5rem', color: color3 }}>{getLabel(3, sma3, sma3Unit)}</td>
                     <td style={{ padding: '0.5rem', color: metrics3.totalReturn > metrics1.indexTotalReturn ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.totalReturn)}</td>
                     <td style={{ padding: '0.5rem', color: metrics3.cagr > metrics1.indexCagr ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
                     <td style={{ padding: '0.5rem', color: metrics3.maxDrawdown < metrics1.indexMaxDrawdown ? 'var(--success)' : 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
@@ -293,11 +314,11 @@ export default function App() {
 
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line type="monotone" name={getLabel(1, sma1, sma1Unit)} dataKey="Strategy1" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit)} dataKey="Strategy2" stroke="#10b981" dot={false} strokeWidth={2} />}
-                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit)} dataKey="Strategy3" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
+                <Line type="monotone" name={getLabel(1, sma1, sma1Unit)} dataKey="Strategy1" stroke={color1} dot={false} strokeWidth={2} />
+                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit)} dataKey="Strategy2" stroke={color2} dot={false} strokeWidth={2} />}
+                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit)} dataKey="Strategy3" stroke={color3} dot={false} strokeWidth={2} />}
                 
-                <Line type="monotone" name="Index" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
+                <Line type="monotone" name="Index" dataKey="Index" stroke={colorIdx} dot={false} strokeWidth={1} opacity={0.6} />
                 <Line type="monotone" name={`SMA 1 (${sma1}${sma1Unit === 'weeks' ? 'w' : 'd'})`} dataKey="SMA1" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
               </LineChart>
             </ResponsiveContainer>
@@ -312,10 +333,10 @@ export default function App() {
                 <YAxis stroke="#94a3b8" domain={['auto', 0]} tickFormatter={(tick) => tick + '%'} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line type="monotone" name={getLabel(1, sma1, sma1Unit) + " Drawdown"} dataKey="Strategy1Drawdown" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit) + " Drawdown"} dataKey="Strategy2Drawdown" stroke="#10b981" dot={false} strokeWidth={2} />}
-                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit) + " Drawdown"} dataKey="Strategy3Drawdown" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
-                <Line type="monotone" name="Index Drawdown" dataKey="IndexDrawdown" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
+                <Line type="monotone" name={getLabel(1, sma1, sma1Unit) + " Drawdown"} dataKey="Strategy1Drawdown" stroke={color1} dot={false} strokeWidth={2} />
+                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit) + " Drawdown"} dataKey="Strategy2Drawdown" stroke={color2} dot={false} strokeWidth={2} />}
+                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit) + " Drawdown"} dataKey="Strategy3Drawdown" stroke={color3} dot={false} strokeWidth={2} />}
+                <Line type="monotone" name="Index Drawdown" dataKey="IndexDrawdown" stroke={colorIdx} dot={false} strokeWidth={1} opacity={0.6} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -330,9 +351,9 @@ export default function App() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="3 3" />
-                <Line type="monotone" name={getLabel(1, sma1, sma1Unit) + " vs Index"} dataKey="Strategy1Relative" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit) + " vs Index"} dataKey="Strategy2Relative" stroke="#10b981" dot={false} strokeWidth={2} />}
-                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit) + " vs Index"} dataKey="Strategy3Relative" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
+                <Line type="monotone" name={getLabel(1, sma1, sma1Unit) + " vs Index"} dataKey="Strategy1Relative" stroke={color1} dot={false} strokeWidth={2} />
+                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit) + " vs Index"} dataKey="Strategy2Relative" stroke={color2} dot={false} strokeWidth={2} />}
+                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit) + " vs Index"} dataKey="Strategy3Relative" stroke={color3} dot={false} strokeWidth={2} />}
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -342,20 +363,20 @@ export default function App() {
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
               <button 
                 onClick={() => setActiveTab(1)} 
-                style={{ background: 'none', border: 'none', borderBottom: activeTab === 1 ? '2px solid #3b82f6' : 'none', color: activeTab === 1 ? '#3b82f6' : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                style={{ background: 'none', border: 'none', borderBottom: activeTab === 1 ? `2px solid ${color1}` : 'none', color: activeTab === 1 ? color1 : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
                 Strategy 1
               </button>
               {showStrat2 && (
                 <button 
                   onClick={() => setActiveTab(2)} 
-                  style={{ background: 'none', border: 'none', borderBottom: activeTab === 2 ? '2px solid #10b981' : 'none', color: activeTab === 2 ? '#10b981' : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                  style={{ background: 'none', border: 'none', borderBottom: activeTab === 2 ? `2px solid ${color2}` : 'none', color: activeTab === 2 ? color2 : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
                   Strategy 2
                 </button>
               )}
               {showStrat3 && (
                 <button 
                   onClick={() => setActiveTab(3)} 
-                  style={{ background: 'none', border: 'none', borderBottom: activeTab === 3 ? '2px solid #8b5cf6' : 'none', color: activeTab === 3 ? '#8b5cf6' : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                  style={{ background: 'none', border: 'none', borderBottom: activeTab === 3 ? `2px solid ${color3}` : 'none', color: activeTab === 3 ? color3 : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
                   Strategy 3
                 </button>
               )}

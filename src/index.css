@@ -11,6 +11,22 @@
   --border: #334155;
 }
 
+body.feminine-theme {
+  --bg-primary: #fdf2f8;
+  --bg-secondary: #fce7f3;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --text-primary: #831843;
+  --text-secondary: #be185d;
+  --accent: #f472b6;
+  --accent-hover: #ec4899;
+  --border: #fbcfe8;
+  background-color: var(--bg-primary);
+  background-image: url("/butterfly_bg.png");
+  background-size: 500px;
+  background-repeat: repeat;
+  background-attachment: fixed;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -43,6 +59,12 @@ header h1 {
   margin: 0 0 0.5rem 0;
   font-size: 2.5rem;
   background: linear-gradient(to right, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+body.feminine-theme header h1 {
+  background: linear-gradient(to right, #ec4899, #8b5cf6);
   -webkit-background-clip: text;
   color: transparent;
 }
