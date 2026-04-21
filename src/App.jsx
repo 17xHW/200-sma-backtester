@@ -114,14 +114,14 @@ export default function App() {
               <span className={`stat-value ${metrics.totalReturn >= 0 ? 'up' : 'down'}`}>
                 {formatPct(metrics.totalReturn)}
               </span>
-              <small style={{color: 'var(--text-secondary)'}}>B&H: {formatPct(metrics.bhTotalReturn)}</small>
+              <small style={{color: 'var(--text-secondary)'}}>Index: {formatPct(metrics.indexTotalReturn)}</small>
             </div>
             <div className="card stat-card">
               <span className="stat-label">Annualized (CAGR)</span>
               <span className={`stat-value ${metrics.cagr >= 0 ? 'up' : 'down'}`}>
                 {formatPct(metrics.cagr)}
               </span>
-              <small style={{color: 'var(--text-secondary)'}}>B&H: {formatPct(metrics.bhCagr)}</small>
+              <small style={{color: 'var(--text-secondary)'}}>Index: {formatPct(metrics.indexCagr)}</small>
             </div>
             <div className="card stat-card">
               <span className="stat-label">Max Drawdown</span>
@@ -147,8 +147,7 @@ export default function App() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line type="monotone" dataKey="Strategy" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                <Line type="monotone" dataKey="BuyAndHold" stroke="#94a3b8" dot={false} strokeWidth={2} />
-                <Line type="monotone" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
+                <Line type="monotone" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.8} />
                 <Line type="monotone" dataKey="SMA" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.8} />
               </LineChart>
             </ResponsiveContainer>

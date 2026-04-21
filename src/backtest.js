@@ -55,8 +55,6 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
   const errFactorBuy = 1 + (errorMarginPct / 100);
   const errFactorSell = 1 - (errorMarginPct / 100);
 
-  // For buy and hold we just hold
-  const startBhValue = cash;
 
   let lastValue = cash;
 
@@ -85,9 +83,6 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
         currentValue = cash * (1 + (currentReturn * leverage));
     }
 
-    // Buy and Hold Value
-    const bhReturn = (today.close - initialPrice) / initialPrice;
-    const bhValue = startBhValue * (1 + bhReturn);
 
     // Track max drawdown
     if (currentValue > peakValue) {
@@ -106,7 +101,6 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
     history.push({
       date: today.date,
       Strategy: currentValue,
-      BuyAndHold: bhValue,
       Index: today.close,
       SMA: today.sma
     });
@@ -114,11 +108,11 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
 
   // 4. Calculate Metrics
   const totalReturn = (lastValue - initialPrice) / initialPrice;
-  const bhTotalReturn = (history[history.length-1].BuyAndHold - initialPrice) / initialPrice;
+  const indexTotalReturn = (history[history.length-1].Index - initialPrice) / initialPrice;
   
   const years = filteredData.length / 252; // approx trading days
   const cagr = Math.pow(lastValue / initialPrice, 1 / years) - 1;
-  const bhCagr = Math.pow(history[history.length-1].BuyAndHold / initialPrice, 1 / years) - 1;
+  const indexCagr = Math.pow(history[history.length-1].Index / initialPrice, 1 / years) - 1;
 
   // Sharpe Ratio
   const avgDailyReturn = dailyReturns.reduce((a, b) => a + b, 0) / dailyReturns.length;
@@ -133,8 +127,8 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
       cagr,
       maxDrawdown,
       sharpeRatio,
-      bhTotalReturn,
-      bhCagr
+      indexTotalReturn,
+      indexCagr
     }
   };
 }
