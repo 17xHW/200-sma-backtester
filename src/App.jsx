@@ -239,24 +239,24 @@ export default function App() {
                   <td style={{ padding: '0.5rem', fontWeight: 'bold' }}>Index</td>
                   <td style={{ padding: '0.5rem' }}>{formatPct(metrics1.indexTotalReturn)}</td>
                   <td style={{ padding: '0.5rem' }}>{formatPct(metrics1.indexCagr)}</td>
-                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.indexMaxDrawdown * 100).toFixed(1)}%</td>
+                  <td style={{ padding: '0.5rem' }}>{(metrics1.indexMaxDrawdown * 100).toFixed(1)}%</td>
                   <td style={{ padding: '0.5rem' }}>-</td>
                   <td style={{ padding: '0.5rem' }}>-</td>
                 </tr>
                 <tr>
                   <td style={{ padding: '0.5rem', color: '#3b82f6' }}>{getLabel(1, sma1, sma1Unit)}</td>
-                  <td style={{ padding: '0.5rem', color: metrics1.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.totalReturn)}</td>
-                  <td style={{ padding: '0.5rem', color: metrics1.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.cagr)}</td>
-                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.maxDrawdown * 100).toFixed(1)}%</td>
+                  <td style={{ padding: '0.5rem', color: metrics1.totalReturn > metrics1.indexTotalReturn ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.totalReturn)}</td>
+                  <td style={{ padding: '0.5rem', color: metrics1.cagr > metrics1.indexCagr ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.cagr)}</td>
+                  <td style={{ padding: '0.5rem', color: metrics1.maxDrawdown < metrics1.indexMaxDrawdown ? 'var(--success)' : 'var(--danger)' }}>{(metrics1.maxDrawdown * 100).toFixed(1)}%</td>
                   <td style={{ padding: '0.5rem' }}>{metrics1.sharpeRatio.toFixed(2)}</td>
                   <td style={{ padding: '0.5rem' }}>{trades1.length}</td>
                 </tr>
                 {showStrat2 && metrics2 && (
                   <tr>
                     <td style={{ padding: '0.5rem', color: '#10b981' }}>{getLabel(2, sma2, sma2Unit)}</td>
-                    <td style={{ padding: '0.5rem', color: metrics2.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.totalReturn)}</td>
-                    <td style={{ padding: '0.5rem', color: metrics2.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
-                    <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
+                    <td style={{ padding: '0.5rem', color: metrics2.totalReturn > metrics1.indexTotalReturn ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.totalReturn)}</td>
+                    <td style={{ padding: '0.5rem', color: metrics2.cagr > metrics1.indexCagr ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
+                    <td style={{ padding: '0.5rem', color: metrics2.maxDrawdown < metrics1.indexMaxDrawdown ? 'var(--success)' : 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
                     <td style={{ padding: '0.5rem' }}>{metrics2.sharpeRatio.toFixed(2)}</td>
                     <td style={{ padding: '0.5rem' }}>{trades2.length}</td>
                   </tr>
@@ -264,9 +264,9 @@ export default function App() {
                 {showStrat3 && metrics3 && (
                   <tr>
                     <td style={{ padding: '0.5rem', color: '#8b5cf6' }}>{getLabel(3, sma3, sma3Unit)}</td>
-                    <td style={{ padding: '0.5rem', color: metrics3.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.totalReturn)}</td>
-                    <td style={{ padding: '0.5rem', color: metrics3.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
-                    <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
+                    <td style={{ padding: '0.5rem', color: metrics3.totalReturn > metrics1.indexTotalReturn ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.totalReturn)}</td>
+                    <td style={{ padding: '0.5rem', color: metrics3.cagr > metrics1.indexCagr ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
+                    <td style={{ padding: '0.5rem', color: metrics3.maxDrawdown < metrics1.indexMaxDrawdown ? 'var(--success)' : 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
                     <td style={{ padding: '0.5rem' }}>{metrics3.sharpeRatio.toFixed(2)}</td>
                     <td style={{ padding: '0.5rem' }}>{trades3.length}</td>
                   </tr>
