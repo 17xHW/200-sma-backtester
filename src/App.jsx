@@ -20,6 +20,8 @@ export default function App() {
   const [sma1, setSma1] = useState(1000); 
   const [sma2, setSma2] = useState(250);  
   const [sma3, setSma3] = useState(50);   
+  const [showStrat2, setShowStrat2] = useState(true);
+  const [showStrat3, setShowStrat3] = useState(true);
   const [leverage, setLeverage] = useState(1);
   const [errorMargin, setErrorMargin] = useState(0); 
   const [startDate, setStartDate] = useState('2000-01-01');
@@ -42,8 +44,8 @@ export default function App() {
     if (loading || data.length === 0) return null;
     
     const res1 = runBacktest(data, sma1, leverage, errorMargin, startDate, endDate);
-    const res2 = runBacktest(data, sma2, leverage, errorMargin, startDate, endDate);
-    const res3 = runBacktest(data, sma3, leverage, errorMargin, startDate, endDate);
+    const res2 = showStrat2 ? runBacktest(data, sma2, leverage, errorMargin, startDate, endDate) : null;
+    const res3 = showStrat3 ? runBacktest(data, sma3, leverage, errorMargin, startDate, endDate) : null;
     
     if (!res1 || !res1.history || res1.history.length === 0) return null;
 
@@ -53,10 +55,10 @@ export default function App() {
         Index: row.Index,
         Strategy1: row.Strategy,
         SMA1: row.SMA,
-        Strategy2: res2.history[i] ? res2.history[i].Strategy : null,
-        SMA2: res2.history[i] ? res2.history[i].SMA : null,
-        Strategy3: res3.history[i] ? res3.history[i].Strategy : null,
-        SMA3: res3.history[i] ? res3.history[i].SMA : null,
+        Strategy2: res2 && res2.history[i] ? res2.history[i].Strategy : null,
+        SMA2: res2 && res2.history[i] ? res2.history[i].SMA : null,
+        Strategy3: res3 && res3.history[i] ? res3.history[i].Strategy : null,
+        SMA3: res3 && res3.history[i] ? res3.history[i].SMA : null,
       };
     });
 
@@ -64,10 +66,10 @@ export default function App() {
       history: mergedHistory,
       outMarketPeriods: res1.outMarketPeriods, // Shading based on primary SMA
       metrics1: res1.metrics,
-      metrics2: res2.metrics,
-      metrics3: res3.metrics
+      metrics2: res2 ? res2.metrics : null,
+      metrics3: res3 ? res3.metrics : null
     };
-  }, [data, loading, sma1, sma2, sma3, leverage, errorMargin, startDate, endDate]);
+  }, [data, loading, sma1, sma2, sma3, showStrat2, showStrat3, leverage, errorMargin, startDate, endDate]);
 
   if (loading) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Loading dataset...</div>;
   if (!backtestResult) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Not enough data.</div>;
@@ -109,12 +111,18 @@ export default function App() {
             <input type="range" min="10" max="2500" step="10" value={sma1} onChange={e => setSma1(Number(e.target.value))} />
           </div>
           <div className="input-group">
-            <label>Strategy 2: SMA <span style={{color: '#10b981'}}>{sma2}d</span></label>
-            <input type="range" min="10" max="2500" step="10" value={sma2} onChange={e => setSma2(Number(e.target.value))} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input type="checkbox" checked={showStrat2} onChange={e => setShowStrat2(e.target.checked)} />
+              Strategy 2: SMA <span style={{color: '#10b981'}}>{sma2}d</span>
+            </label>
+            {showStrat2 && <input type="range" min="10" max="2500" step="10" value={sma2} onChange={e => setSma2(Number(e.target.value))} />}
           </div>
           <div className="input-group">
-            <label>Strategy 3: SMA <span style={{color: '#8b5cf6'}}>{sma3}d</span></label>
-            <input type="range" min="10" max="2500" step="10" value={sma3} onChange={e => setSma3(Number(e.target.value))} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input type="checkbox" checked={showStrat3} onChange={e => setShowStrat3(e.target.checked)} />
+              Strategy 3: SMA <span style={{color: '#8b5cf6'}}>{sma3}d</span>
+            </label>
+            {showStrat3 && <input type="range" min="10" max="2500" step="10" value={sma3} onChange={e => setSma3(Number(e.target.value))} />}
           </div>
 
           <div className="input-group" style={{ marginTop: '1rem' }}>
@@ -165,20 +173,24 @@ export default function App() {
                   <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.maxDrawdown * 100).toFixed(1)}%</td>
                   <td style={{ padding: '0.5rem' }}>{metrics1.sharpeRatio.toFixed(2)}</td>
                 </tr>
-                <tr>
-                  <td style={{ padding: '0.5rem', color: '#10b981' }}>Strat 2 ({sma2}d)</td>
-                  <td style={{ padding: '0.5rem', color: metrics2.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.totalReturn)}</td>
-                  <td style={{ padding: '0.5rem', color: metrics2.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
-                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
-                  <td style={{ padding: '0.5rem' }}>{metrics2.sharpeRatio.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '0.5rem', color: '#8b5cf6' }}>Strat 3 ({sma3}d)</td>
-                  <td style={{ padding: '0.5rem', color: metrics3.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.totalReturn)}</td>
-                  <td style={{ padding: '0.5rem', color: metrics3.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
-                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
-                  <td style={{ padding: '0.5rem' }}>{metrics3.sharpeRatio.toFixed(2)}</td>
-                </tr>
+                {showStrat2 && metrics2 && (
+                  <tr>
+                    <td style={{ padding: '0.5rem', color: '#10b981' }}>Strat 2 ({sma2}d)</td>
+                    <td style={{ padding: '0.5rem', color: metrics2.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.totalReturn)}</td>
+                    <td style={{ padding: '0.5rem', color: metrics2.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
+                    <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
+                    <td style={{ padding: '0.5rem' }}>{metrics2.sharpeRatio.toFixed(2)}</td>
+                  </tr>
+                )}
+                {showStrat3 && metrics3 && (
+                  <tr>
+                    <td style={{ padding: '0.5rem', color: '#8b5cf6' }}>Strat 3 ({sma3}d)</td>
+                    <td style={{ padding: '0.5rem', color: metrics3.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.totalReturn)}</td>
+                    <td style={{ padding: '0.5rem', color: metrics3.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
+                    <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
+                    <td style={{ padding: '0.5rem' }}>{metrics3.sharpeRatio.toFixed(2)}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -198,8 +210,8 @@ export default function App() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line type="monotone" name={`Strategy 1 (${sma1}d)`} dataKey="Strategy1" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                <Line type="monotone" name={`Strategy 2 (${sma2}d)`} dataKey="Strategy2" stroke="#10b981" dot={false} strokeWidth={2} />
-                <Line type="monotone" name={`Strategy 3 (${sma3}d)`} dataKey="Strategy3" stroke="#8b5cf6" dot={false} strokeWidth={2} />
+                {showStrat2 && <Line type="monotone" name={`Strategy 2 (${sma2}d)`} dataKey="Strategy2" stroke="#10b981" dot={false} strokeWidth={2} />}
+                {showStrat3 && <Line type="monotone" name={`Strategy 3 (${sma3}d)`} dataKey="Strategy3" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
                 
                 <Line type="monotone" name="Index" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
                 <Line type="monotone" name={`SMA 1 (${sma1}d)`} dataKey="SMA1" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
