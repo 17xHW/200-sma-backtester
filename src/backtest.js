@@ -178,6 +178,7 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
     // Chart curve strings (negative)
     const stratDrawdownChart = peakValue === 0 ? 0 : (currentValue - peakValue) / peakValue;
     const indexDrawdownChart = indexPeak === 0 ? 0 : (today.close - indexPeak) / indexPeak;
+    const stratRelativeChart = (currentValue / today.close) - 1;
 
     // Track daily returns for Sharpe
     const dailyReturn = (currentValue - lastValue) / lastValue;
@@ -188,6 +189,7 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
       date: today.date,
       Strategy: currentValue,
       StrategyDrawdown: stratDrawdownChart,
+      StrategyRelative: stratRelativeChart,
       Index: today.close,
       IndexDrawdown: indexDrawdownChart,
       SMA: today.sma

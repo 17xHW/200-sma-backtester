@@ -68,12 +68,15 @@ export default function App() {
         IndexDrawdown: row.IndexDrawdown * 100,
         Strategy1: row.Strategy,
         Strategy1Drawdown: row.StrategyDrawdown * 100,
+        Strategy1Relative: row.StrategyRelative * 100,
         SMA1: row.SMA,
         Strategy2: res2 && res2.history[i] ? res2.history[i].Strategy : null,
         Strategy2Drawdown: res2 && res2.history[i] ? res2.history[i].StrategyDrawdown * 100 : null,
+        Strategy2Relative: res2 && res2.history[i] ? res2.history[i].StrategyRelative * 100 : null,
         SMA2: res2 && res2.history[i] ? res2.history[i].SMA : null,
         Strategy3: res3 && res3.history[i] ? res3.history[i].Strategy : null,
         Strategy3Drawdown: res3 && res3.history[i] ? res3.history[i].StrategyDrawdown * 100 : null,
+        Strategy3Relative: res3 && res3.history[i] ? res3.history[i].StrategyRelative * 100 : null,
         SMA3: res3 && res3.history[i] ? res3.history[i].SMA : null,
       };
     });
@@ -107,8 +110,9 @@ export default function App() {
           <p style={{ margin: 0, fontWeight: 'bold' }}>{label}</p>
           {payload.map((entry, idx) => {
             let valText;
-            if (entry.name.includes("Drawdown") || entry.dataKey.includes("Drawdown")) {
-               valText = entry.value.toFixed(2) + '%';
+            const isPct = entry.name.includes("Drawdown") || entry.dataKey.includes("Drawdown") || entry.name.includes("vs Index") || entry.dataKey.includes("Relative");
+            if (isPct) {
+               valText = (entry.value > 0 && !entry.name.includes("Drawdown") ? '+' : '') + entry.value.toFixed(2) + '%';
             } else {
                const isPrice = entry.name.includes("SMA") || entry.name.includes("Index");
                valText = isPrice ? entry.value.toFixed(2) : formatCcy(entry.value);
@@ -308,6 +312,23 @@ export default function App() {
                 {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit) + " Drawdown"} dataKey="Strategy2Drawdown" stroke="#10b981" dot={false} strokeWidth={2} />}
                 {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit) + " Drawdown"} dataKey="Strategy3Drawdown" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
                 <Line type="monotone" name="Index Drawdown" dataKey="IndexDrawdown" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="card chart-container" style={{ marginTop: '2rem', height: '350px' }}>
+            <h3>Relative Outperformance vs Buy & Hold</h3>
+            <ResponsiveContainer width="100%" height="90%">
+              <LineChart data={history} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} tickFormatter={(tick) => tick.substring(0, 4)} />
+                <YAxis stroke="#94a3b8" domain={['auto', 'auto']} tickFormatter={(tick) => (tick > 0 ? '+' : '') + tick.toFixed(0) + '%'} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="3 3" />
+                <Line type="monotone" name={getLabel(1, sma1, sma1Unit) + " vs Index"} dataKey="Strategy1Relative" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit) + " vs Index"} dataKey="Strategy2Relative" stroke="#10b981" dot={false} strokeWidth={2} />}
+                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit) + " vs Index"} dataKey="Strategy3Relative" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
               </LineChart>
             </ResponsiveContainer>
           </div>
