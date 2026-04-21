@@ -17,9 +17,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   // Strategy Parameters
-  const [smaLength, setSmaLength] = useState(1000); // 200 weeks
+  const [sma1, setSma1] = useState(1000); 
+  const [sma2, setSma2] = useState(250);  
+  const [sma3, setSma3] = useState(50);   
   const [leverage, setLeverage] = useState(1);
-  const [errorMargin, setErrorMargin] = useState(0); // 0%
+  const [errorMargin, setErrorMargin] = useState(0); 
   const [startDate, setStartDate] = useState('2000-01-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -38,30 +40,53 @@ export default function App() {
 
   const backtestResult = useMemo(() => {
     if (loading || data.length === 0) return null;
-    return runBacktest(data, smaLength, leverage, errorMargin, startDate, endDate);
-  }, [data, loading, smaLength, leverage, errorMargin, startDate, endDate]);
+    
+    const res1 = runBacktest(data, sma1, leverage, errorMargin, startDate, endDate);
+    const res2 = runBacktest(data, sma2, leverage, errorMargin, startDate, endDate);
+    const res3 = runBacktest(data, sma3, leverage, errorMargin, startDate, endDate);
+    
+    if (!res1 || !res1.history || res1.history.length === 0) return null;
 
-  if (loading) {
-    return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Loading dataset...</div>;
-  }
+    const mergedHistory = res1.history.map((row, i) => {
+      return {
+        date: row.date,
+        Index: row.Index,
+        Strategy1: row.Strategy,
+        SMA1: row.SMA,
+        Strategy2: res2.history[i] ? res2.history[i].Strategy : null,
+        SMA2: res2.history[i] ? res2.history[i].SMA : null,
+        Strategy3: res3.history[i] ? res3.history[i].Strategy : null,
+        SMA3: res3.history[i] ? res3.history[i].SMA : null,
+      };
+    });
 
-  if (!backtestResult || !backtestResult.metrics) {
-    return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Not enough data or invalid parameters.</div>;
-  }
+    return {
+      history: mergedHistory,
+      outMarketPeriods: res1.outMarketPeriods, // Shading based on primary SMA
+      metrics1: res1.metrics,
+      metrics2: res2.metrics,
+      metrics3: res3.metrics
+    };
+  }, [data, loading, sma1, sma2, sma3, leverage, errorMargin, startDate, endDate]);
 
-  const { history, metrics, outMarketPeriods } = backtestResult;
+  if (loading) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Loading dataset...</div>;
+  if (!backtestResult) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Not enough data.</div>;
+
+  const { history, outMarketPeriods, metrics1, metrics2, metrics3 } = backtestResult;
   
-  // Custom Tooltip for Chart
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: '10px', border: '1px solid #334155', borderRadius: '8px' }}>
           <p style={{ margin: 0, fontWeight: 'bold' }}>{label}</p>
-          {payload.map((entry, idx) => (
-            <p key={idx} style={{ margin: 0, color: entry.color }}>
-              {entry.name}: {entry.name.includes("SMA") || entry.name.includes("Index") ? entry.value.toFixed(2) : formatCcy(entry.value)}
-            </p>
-          ))}
+          {payload.map((entry, idx) => {
+            const isPrice = entry.name.includes("SMA") || entry.name.includes("Index");
+            return (
+              <p key={idx} style={{ margin: 0, color: entry.color }}>
+                {entry.name}: {isPrice ? entry.value.toFixed(2) : formatCcy(entry.value)}
+              </p>
+            );
+          })}
         </div>
       );
     }
@@ -71,8 +96,8 @@ export default function App() {
   return (
     <div className="dashboard-container">
       <header>
-        <h1>S&P 500 SMA Strategy</h1>
-        <p>Backtesting engine for the 200-week (or custom) moving average trend following strategy.</p>
+        <h1>Multi-SMA Strategy Dashboard</h1>
+        <p>Compare three parallel moving average crossovers against the S&P 500 Buy & Hold.</p>
       </header>
 
       <div className="dashboard-grid">
@@ -80,12 +105,19 @@ export default function App() {
           <h3>Parameters</h3>
           
           <div className="input-group">
-            <label>SMA Length (days) <span>{smaLength}</span></label>
-            <input type="range" min="10" max="2500" step="10" value={smaLength} onChange={e => setSmaLength(Number(e.target.value))} />
-            <small style={{color: 'var(--text-secondary)'}}>1000 days = 200 weeks</small>
+            <label>Strategy 1: SMA <span style={{color: '#3b82f6'}}>{sma1}d</span></label>
+            <input type="range" min="10" max="2500" step="10" value={sma1} onChange={e => setSma1(Number(e.target.value))} />
+          </div>
+          <div className="input-group">
+            <label>Strategy 2: SMA <span style={{color: '#10b981'}}>{sma2}d</span></label>
+            <input type="range" min="10" max="2500" step="10" value={sma2} onChange={e => setSma2(Number(e.target.value))} />
+          </div>
+          <div className="input-group">
+            <label>Strategy 3: SMA <span style={{color: '#8b5cf6'}}>{sma3}d</span></label>
+            <input type="range" min="10" max="2500" step="10" value={sma3} onChange={e => setSma3(Number(e.target.value))} />
           </div>
 
-          <div className="input-group">
+          <div className="input-group" style={{ marginTop: '1rem' }}>
             <label>Leverage <span>{leverage}x</span></label>
             <input type="range" min="1" max="4" step="0.1" value={leverage} onChange={e => setLeverage(Number(e.target.value))} />
           </div>
@@ -93,7 +125,6 @@ export default function App() {
           <div className="input-group">
             <label>Signal Threshold Buffer <span>{errorMargin}%</span></label>
             <input type="range" min="0" max="10" step="0.1" value={errorMargin} onChange={e => setErrorMargin(Number(e.target.value))} />
-            <small style={{color: 'var(--text-secondary)'}}>Require price to cross SMA by X% to avoid noise.</small>
           </div>
 
           <div className="input-group">
@@ -108,33 +139,48 @@ export default function App() {
         </aside>
 
         <main className="main-content">
-          <div className="stats-grid">
-            <div className="card stat-card">
-              <span className="stat-label">Total Return</span>
-              <span className={`stat-value ${metrics.totalReturn >= 0 ? 'up' : 'down'}`}>
-                {formatPct(metrics.totalReturn)}
-              </span>
-              <small style={{color: 'var(--text-secondary)'}}>Index: {formatPct(metrics.indexTotalReturn)}</small>
-            </div>
-            <div className="card stat-card">
-              <span className="stat-label">Annualized (CAGR)</span>
-              <span className={`stat-value ${metrics.cagr >= 0 ? 'up' : 'down'}`}>
-                {formatPct(metrics.cagr)}
-              </span>
-              <small style={{color: 'var(--text-secondary)'}}>Index: {formatPct(metrics.indexCagr)}</small>
-            </div>
-            <div className="card stat-card">
-              <span className="stat-label">Max Drawdown</span>
-              <span className="stat-value down">
-                {(metrics.maxDrawdown * 100).toFixed(1)}%
-              </span>
-            </div>
-            <div className="card stat-card">
-              <span className="stat-label">Sharpe Ratio</span>
-              <span className="stat-value" style={{ color: '#a78bfa' }}>
-                {metrics.sharpeRatio.toFixed(2)}
-              </span>
-            </div>
+          <div className="card" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '0.5rem' }}>Asset</th>
+                  <th style={{ padding: '0.5rem' }}>Total Return</th>
+                  <th style={{ padding: '0.5rem' }}>CAGR</th>
+                  <th style={{ padding: '0.5rem' }}>Max Drawdown</th>
+                  <th style={{ padding: '0.5rem' }}>Sharpe Ratio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ padding: '0.5rem', fontWeight: 'bold' }}>Index</td>
+                  <td style={{ padding: '0.5rem' }}>{formatPct(metrics1.indexTotalReturn)}</td>
+                  <td style={{ padding: '0.5rem' }}>{formatPct(metrics1.indexCagr)}</td>
+                  <td style={{ padding: '0.5rem' }}>-</td>
+                  <td style={{ padding: '0.5rem' }}>-</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '0.5rem', color: '#3b82f6' }}>Strat 1 ({sma1}d)</td>
+                  <td style={{ padding: '0.5rem', color: metrics1.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.totalReturn)}</td>
+                  <td style={{ padding: '0.5rem', color: metrics1.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.cagr)}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.maxDrawdown * 100).toFixed(1)}%</td>
+                  <td style={{ padding: '0.5rem' }}>{metrics1.sharpeRatio.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '0.5rem', color: '#10b981' }}>Strat 2 ({sma2}d)</td>
+                  <td style={{ padding: '0.5rem', color: metrics2.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.totalReturn)}</td>
+                  <td style={{ padding: '0.5rem', color: metrics2.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
+                  <td style={{ padding: '0.5rem' }}>{metrics2.sharpeRatio.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '0.5rem', color: '#8b5cf6' }}>Strat 3 ({sma3}d)</td>
+                  <td style={{ padding: '0.5rem', color: metrics3.totalReturn > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.totalReturn)}</td>
+                  <td style={{ padding: '0.5rem', color: metrics3.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
+                  <td style={{ padding: '0.5rem' }}>{metrics3.sharpeRatio.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <div className="card chart-container">
@@ -151,9 +197,12 @@ export default function App() {
 
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line type="monotone" dataKey="Strategy" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                <Line type="monotone" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.8} />
-                <Line type="monotone" dataKey="SMA" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.8} />
+                <Line type="monotone" name={`Strategy 1 (${sma1}d)`} dataKey="Strategy1" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                <Line type="monotone" name={`Strategy 2 (${sma2}d)`} dataKey="Strategy2" stroke="#10b981" dot={false} strokeWidth={2} />
+                <Line type="monotone" name={`Strategy 3 (${sma3}d)`} dataKey="Strategy3" stroke="#8b5cf6" dot={false} strokeWidth={2} />
+                
+                <Line type="monotone" name="Index" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
+                <Line type="monotone" name={`SMA 1 (${sma1}d)`} dataKey="SMA1" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
               </LineChart>
             </ResponsiveContainer>
           </div>
