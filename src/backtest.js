@@ -38,10 +38,10 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
   if (filteredData.length === 0) return { history: [], metrics: null };
 
   // 3. Run Strategy
-  let cash = 10000;
+  const initialPrice = filteredData[0].close;
+  let cash = initialPrice;
   
   // Buy & Hold base comparison
-  const initialPrice = filteredData[0].close;
   
   let inMarket = false;
   let entryPrice = 0;
@@ -113,12 +113,12 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
   }
 
   // 4. Calculate Metrics
-  const totalReturn = (lastValue - 10000) / 10000;
-  const bhTotalReturn = (history[history.length-1].BuyAndHold - 10000) / 10000;
+  const totalReturn = (lastValue - initialPrice) / initialPrice;
+  const bhTotalReturn = (history[history.length-1].BuyAndHold - initialPrice) / initialPrice;
   
   const years = filteredData.length / 252; // approx trading days
-  const cagr = Math.pow(lastValue / 10000, 1 / years) - 1;
-  const bhCagr = Math.pow(history[history.length-1].BuyAndHold / 10000, 1 / years) - 1;
+  const cagr = Math.pow(lastValue / initialPrice, 1 / years) - 1;
+  const bhCagr = Math.pow(history[history.length-1].BuyAndHold / initialPrice, 1 / years) - 1;
 
   // Sharpe Ratio
   const avgDailyReturn = dailyReturns.reduce((a, b) => a + b, 0) / dailyReturns.length;
