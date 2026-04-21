@@ -16,6 +16,10 @@ export default function App() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  const [assetName, setAssetName] = useState('sp500');
+  const [useMM, setUseMM] = useState(false);
+  const [mmApr, setMmApr] = useState(4.0);
+  
   // Strategy Parameters
   const [sma1Unit, setSma1Unit] = useState('weeks');
   const [sma1, setSma1] = useState(200); 
@@ -35,7 +39,8 @@ export default function App() {
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
-    fetch('/sp_data.json')
+    setLoading(true);
+    fetch(`/${assetName}.json`)
       .then(res => res.json())
       .then(json => {
         setData(json.records);
@@ -45,7 +50,7 @@ export default function App() {
         console.error("Failed to load data", err);
         setLoading(false);
       });
-  }, []);
+  }, [assetName]);
 
   const backtestResult = useMemo(() => {
     if (loading || data.length === 0) return null;
@@ -83,7 +88,7 @@ export default function App() {
       metrics2: res2 ? res2.metrics : null,
       metrics3: res3 ? res3.metrics : null
     };
-  }, [data, loading, sma1, sma1Unit, sma2, sma2Unit, sma3, sma3Unit, showStrat2, showStrat3, leverage, errorMargin, startDate, endDate]);
+  }, [data, loading, sma1, sma1Unit, sma2, sma2Unit, sma3, sma3Unit, showStrat2, showStrat3, leverage, errorMargin, startDate, endDate, useMM, mmApr]);
 
   if (loading) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Loading dataset...</div>;
   if (!backtestResult) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Not enough data.</div>;
@@ -134,6 +139,17 @@ export default function App() {
           <h3>Parameters</h3>
           
           <div className="input-group">
+            <label>Asset</label>
+            <select value={assetName} onChange={e => setAssetName(e.target.value)} style={{background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px', width: '100%', marginBottom: '1rem'}}>
+                <option value="sp500">S&P 500 (^GSPC)</option>
+                <option value="nasdaq">Nasdaq Composite (^IXIC)</option>
+                <option value="dax">German DAX (^GDAXI)</option>
+                <option value="gold">Gold (GC=F)</option>
+                <option value="silver">Silver (SI=F)</option>
+            </select>
+          </div>
+
+          <div className="input-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{color: '#3b82f6', fontWeight: 'bold'}}>Strat 1</span>
               <input type="number" style={{width: '60px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px'}} value={sma1} onChange={e => setSma1(Number(e.target.value))} />
@@ -181,7 +197,16 @@ export default function App() {
             <input type="range" min="0" max="10" step="0.1" value={errorMargin} onChange={e => setErrorMargin(Number(e.target.value))} />
           </div>
 
-          <div className="input-group">
+          <div className="input-group" style={{ marginTop: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input type="checkbox" checked={useMM} onChange={e => setUseMM(e.target.checked)} />
+              Money Market Cash Park
+            </label>
+            {useMM && <input type="range" min="0" max="15" step="0.1" value={mmApr} onChange={e => setMmApr(Number(e.target.value))} />}
+            {useMM && <small style={{color: 'var(--success)'}}>Yielding {mmApr}% APR while in cash.</small>}
+          </div>
+
+          <div className="input-group" style={{ marginTop: '1rem' }}>
             <label>Start Date</label>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           </div>

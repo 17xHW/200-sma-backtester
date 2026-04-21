@@ -7,8 +7,10 @@
  * @param {number} errorMarginPct - Execution slip/error in percent (e.g., 1 for 1%)
  * @param {string} startDate - YYYY-MM-DD
  * @param {string} endDate - YYYY-MM-DD
+ * @param {boolean} useMM - Parse into Money Market
+ * @param {number} mmApr - Annual percentage rate of money market
  */
-export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPct, startDate, endDate) {
+export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPct, startDate, endDate, useMM, mmApr) {
   if (!rawData || rawData.length < (smaUnit === 'weeks' ? smaLength * 4 : smaLength)) return { history: [], metrics: null };
 
   const dataWithSma = [];
@@ -108,7 +110,7 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
   
   const errFactorBuy = 1 + (errorMarginPct / 100);
   const errFactorSell = 1 - (errorMarginPct / 100);
-
+  const dailyMMFactor = useMM ? Math.pow(1 + (mmApr / 100), 1 / 252) : 1;
 
   let lastValue = cash;
 
@@ -140,6 +142,11 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
         const returnSinceEntry = (today.close - entryPrice) / entryPrice;
         cash = cash * (1 + (returnSinceEntry * leverage));
         trades.push({ type: 'SELL', date: today.date, price: today.close, return: returnSinceEntry * leverage });
+    }
+
+    // Accrue Money Market interest if out of the market
+    if (!inMarket && i > 0) {
+        cash = cash * dailyMMFactor;
     }
 
     // Mark to market daily value

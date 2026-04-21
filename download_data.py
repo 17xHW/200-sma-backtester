@@ -3,39 +3,45 @@ import pandas as pd
 import json
 import os
 
-def download_sp500():
-    print("Downloading ^GSPC data...")
-    ticker = yf.Ticker('^GSPC')
-    # Get max period, daily
-    hist = ticker.history(period="max", interval="1d")
-    
-    # We only need Date and Close.
-    # The index is the Date.
-    hist = hist.reset_index()
-    
-    # Check if 'Date' or 'Datetime' is in columns
-    date_col = 'Date' if 'Date' in hist.columns else 'Datetime'
-    
-    # Format date to string YYYY-MM-DD
-    hist['formatted_date'] = hist[date_col].dt.strftime('%Y-%m-%d')
-    hist['close'] = hist['Close']
-    
-    # Prepare JSON array format
-    records = hist[['formatted_date', 'close']].rename(columns={'formatted_date': 'date'}).to_dict('records')
-    
-    # Ensure public directory exists
+ASSETS = {
+    'sp500': '^GSPC',
+    'nasdaq': '^IXIC',
+    'dax': '^GDAXI',
+    'gold': 'GC=F',
+    'silver': 'SI=F'
+}
+
+def download_data():
     os.makedirs('public', exist_ok=True)
     
-    output_meta = {
-        'symbol': '^GSPC',
-        'records': records
-    }
-    
-    output_path = 'public/sp_data.json'
-    with open(output_path, 'w') as f:
-        json.dump(output_meta, f)
+    for name, symbol in ASSETS.items():
+        print(f"Downloading {symbol} data for {name}...")
+        ticker = yf.Ticker(symbol)
+        hist = ticker.history(period="max", interval="1d")
         
-    print(f"Data saved to {output_path}. Total records: {len(records)}")
+        hist = hist.reset_index()
+        if hist.empty:
+            print(f"Failed to fetch data for {symbol}")
+            continue
+            
+        date_col = 'Date' if 'Date' in hist.columns else 'Datetime'
+        
+        hist['formatted_date'] = hist[date_col].dt.strftime('%Y-%m-%d')
+        hist['close'] = hist['Close']
+        
+        records = hist[['formatted_date', 'close']].rename(columns={'formatted_date': 'date'}).to_dict('records')
+        
+        output_meta = {
+            'symbol': symbol,
+            'name': name,
+            'records': records
+        }
+        
+        output_path = f'public/{name}.json'
+        with open(output_path, 'w') as f:
+            json.dump(output_meta, f)
+            
+        print(f"Saved {name} to {output_path} ({len(records)} records)")
 
 if __name__ == '__main__':
-    download_sp500()
+    download_data()
