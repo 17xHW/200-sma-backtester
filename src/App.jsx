@@ -202,6 +202,7 @@ export default function App() {
                   <th style={{ padding: '0.5rem' }}>CAGR</th>
                   <th style={{ padding: '0.5rem' }}>Max Drawdown</th>
                   <th style={{ padding: '0.5rem' }}>Sharpe Ratio</th>
+                  <th style={{ padding: '0.5rem' }}>Total Executions</th>
                 </tr>
               </thead>
               <tbody>
@@ -211,6 +212,7 @@ export default function App() {
                   <td style={{ padding: '0.5rem' }}>{formatPct(metrics1.indexCagr)}</td>
                   <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.indexMaxDrawdown * 100).toFixed(1)}%</td>
                   <td style={{ padding: '0.5rem' }}>-</td>
+                  <td style={{ padding: '0.5rem' }}>-</td>
                 </tr>
                 <tr>
                   <td style={{ padding: '0.5rem', color: '#3b82f6' }}>{getLabel(1, sma1, sma1Unit)}</td>
@@ -218,6 +220,7 @@ export default function App() {
                   <td style={{ padding: '0.5rem', color: metrics1.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics1.cagr)}</td>
                   <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.maxDrawdown * 100).toFixed(1)}%</td>
                   <td style={{ padding: '0.5rem' }}>{metrics1.sharpeRatio.toFixed(2)}</td>
+                  <td style={{ padding: '0.5rem' }}>{trades1.length}</td>
                 </tr>
                 {showStrat2 && metrics2 && (
                   <tr>
@@ -226,6 +229,7 @@ export default function App() {
                     <td style={{ padding: '0.5rem', color: metrics2.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics2.cagr)}</td>
                     <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics2.maxDrawdown * 100).toFixed(1)}%</td>
                     <td style={{ padding: '0.5rem' }}>{metrics2.sharpeRatio.toFixed(2)}</td>
+                    <td style={{ padding: '0.5rem' }}>{trades2.length}</td>
                   </tr>
                 )}
                 {showStrat3 && metrics3 && (
@@ -235,6 +239,7 @@ export default function App() {
                     <td style={{ padding: '0.5rem', color: metrics3.cagr > 0 ? 'var(--success)' : 'var(--danger)' }}>{formatPct(metrics3.cagr)}</td>
                     <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics3.maxDrawdown * 100).toFixed(1)}%</td>
                     <td style={{ padding: '0.5rem' }}>{metrics3.sharpeRatio.toFixed(2)}</td>
+                    <td style={{ padding: '0.5rem' }}>{trades3.length}</td>
                   </tr>
                 )}
               </tbody>
