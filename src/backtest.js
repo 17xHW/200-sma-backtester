@@ -115,9 +115,14 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
     const today = filteredData[i];
     const prev = i > 0 ? filteredData[i-1] : null;
 
-    // Check signals (Compare previous day close to previous day SMA with threshold)
-    // Buy when crossing from below + threshold buffer
-    if (prev && prev.close > prev.sma * errFactorBuy && !inMarket) {
+    const prev2 = i > 1 ? filteredData[i-2] : null;
+
+    // Check signals using strict crossovers
+    const crossUp = prev2 && prev2.close <= prev2.sma * errFactorBuy && prev.close > prev.sma * errFactorBuy;
+    const crossDown = prev && prev.close < prev.sma * errFactorSell;
+
+    // Buy strictly on a fresh crossover from below + threshold buffer
+    if (crossUp && !inMarket) {
         inMarket = true;
         entryPrice = today.close;
         if (outStart) {
@@ -125,8 +130,8 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
             outStart = null;
         }
     } 
-    // Sell when crossing from above - threshold buffer
-    else if (prev && prev.close < prev.sma * errFactorSell && inMarket) {
+    // Sell whenever price drops below the threshold buffer
+    else if (crossDown && inMarket) {
         inMarket = false;
         outStart = today.date;
         // Apply leverage return for this last partial period
