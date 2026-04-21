@@ -62,17 +62,17 @@ export function runBacktest(rawData, smaLength, leverage, errorMarginPct, startD
     const today = filteredData[i];
     const prev = i > 0 ? filteredData[i-1] : null;
 
-    // Check signals (Compare previous day close to previous day SMA to decide action today)
-    // Buy when crossing from below
-    if (prev && prev.close > prev.sma && !inMarket) {
+    // Check signals (Compare previous day close to previous day SMA with threshold)
+    // Buy when crossing from below + threshold buffer
+    if (prev && prev.close > prev.sma * errFactorBuy && !inMarket) {
         inMarket = true;
-        entryPrice = today.close * errFactorBuy;
+        entryPrice = today.close;
     } 
-    // Sell when crossing from above
-    else if (prev && prev.close < prev.sma && inMarket) {
+    // Sell when crossing from above - threshold buffer
+    else if (prev && prev.close < prev.sma * errFactorSell && inMarket) {
         inMarket = false;
-        // Apply leverage return for this last partial period, minus error factor
-        const returnSinceEntry = (today.close * errFactorSell - entryPrice) / entryPrice;
+        // Apply leverage return for this last partial period
+        const returnSinceEntry = (today.close - entryPrice) / entryPrice;
         cash = cash * (1 + (returnSinceEntry * leverage));
     }
 

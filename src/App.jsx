@@ -91,9 +91,9 @@ export default function App() {
           </div>
 
           <div className="input-group">
-            <label>Execution Error Margin <span>{errorMargin}%</span></label>
+            <label>Signal Threshold Buffer <span>{errorMargin}%</span></label>
             <input type="range" min="0" max="10" step="0.1" value={errorMargin} onChange={e => setErrorMargin(Number(e.target.value))} />
-            <small style={{color: 'var(--text-secondary)'}}>Slippage added to price upon signal.</small>
+            <small style={{color: 'var(--text-secondary)'}}>Require price to cross SMA by X% to avoid noise.</small>
           </div>
 
           <div className="input-group">
