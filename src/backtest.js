@@ -99,6 +99,9 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
   let peakValue = cash;
   let maxDrawdown = 0;
   
+  let indexPeak = initialPrice;
+  let indexMaxDrawdown = 0;
+  
   const history = [];
   const dailyReturns = [];
   
@@ -148,6 +151,19 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
         maxDrawdown = currentDrawdown;
     }
 
+    // Index max drawdown
+    if (today.close > indexPeak) {
+        indexPeak = today.close;
+    }
+    const indexCurrentDrawdown = (indexPeak - today.close) / indexPeak;
+    if (indexCurrentDrawdown > indexMaxDrawdown) {
+        indexMaxDrawdown = indexCurrentDrawdown;
+    }
+
+    // Chart curve strings (negative)
+    const stratDrawdownChart = peakValue === 0 ? 0 : (currentValue - peakValue) / peakValue;
+    const indexDrawdownChart = indexPeak === 0 ? 0 : (today.close - indexPeak) / indexPeak;
+
     // Track daily returns for Sharpe
     const dailyReturn = (currentValue - lastValue) / lastValue;
     dailyReturns.push(dailyReturn);
@@ -156,7 +172,9 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
     history.push({
       date: today.date,
       Strategy: currentValue,
+      StrategyDrawdown: stratDrawdownChart,
       Index: today.close,
+      IndexDrawdown: indexDrawdownChart,
       SMA: today.sma
     });
   }
@@ -188,7 +206,8 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
       maxDrawdown,
       sharpeRatio,
       indexTotalReturn,
-      indexCagr
+      indexCagr,
+      indexMaxDrawdown
     }
   };
 }

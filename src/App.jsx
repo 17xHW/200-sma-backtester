@@ -59,11 +59,15 @@ export default function App() {
       return {
         date: row.date,
         Index: row.Index,
+        IndexDrawdown: row.IndexDrawdown * 100,
         Strategy1: row.Strategy,
+        Strategy1Drawdown: row.StrategyDrawdown * 100,
         SMA1: row.SMA,
         Strategy2: res2 && res2.history[i] ? res2.history[i].Strategy : null,
+        Strategy2Drawdown: res2 && res2.history[i] ? res2.history[i].StrategyDrawdown * 100 : null,
         SMA2: res2 && res2.history[i] ? res2.history[i].SMA : null,
         Strategy3: res3 && res3.history[i] ? res3.history[i].Strategy : null,
+        Strategy3Drawdown: res3 && res3.history[i] ? res3.history[i].StrategyDrawdown * 100 : null,
         SMA3: res3 && res3.history[i] ? res3.history[i].SMA : null,
       };
     });
@@ -88,10 +92,16 @@ export default function App() {
         <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: '10px', border: '1px solid #334155', borderRadius: '8px' }}>
           <p style={{ margin: 0, fontWeight: 'bold' }}>{label}</p>
           {payload.map((entry, idx) => {
-            const isPrice = entry.name.includes("SMA") || entry.name.includes("Index");
+            let valText;
+            if (entry.name.includes("Drawdown") || entry.dataKey.includes("Drawdown")) {
+               valText = entry.value.toFixed(2) + '%';
+            } else {
+               const isPrice = entry.name.includes("SMA") || entry.name.includes("Index");
+               valText = isPrice ? entry.value.toFixed(2) : formatCcy(entry.value);
+            }
             return (
               <p key={idx} style={{ margin: 0, color: entry.color }}>
-                {entry.name}: {isPrice ? entry.value.toFixed(2) : formatCcy(entry.value)}
+                {entry.name}: {valText}
               </p>
             );
           })}
@@ -190,7 +200,7 @@ export default function App() {
                   <td style={{ padding: '0.5rem', fontWeight: 'bold' }}>Index</td>
                   <td style={{ padding: '0.5rem' }}>{formatPct(metrics1.indexTotalReturn)}</td>
                   <td style={{ padding: '0.5rem' }}>{formatPct(metrics1.indexCagr)}</td>
-                  <td style={{ padding: '0.5rem' }}>-</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--danger)' }}>{(metrics1.indexMaxDrawdown * 100).toFixed(1)}%</td>
                   <td style={{ padding: '0.5rem' }}>-</td>
                 </tr>
                 <tr>
@@ -242,6 +252,23 @@ export default function App() {
                 
                 <Line type="monotone" name="Index" dataKey="Index" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
                 <Line type="monotone" name={`SMA 1 (${sma1}${sma1Unit === 'weeks' ? 'w' : 'd'})`} dataKey="SMA1" stroke="#f43f5e" dot={false} strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="card chart-container" style={{ marginTop: '2rem', height: '350px' }}>
+            <h3>Drawdown Profile</h3>
+            <ResponsiveContainer width="100%" height="90%">
+              <LineChart data={history} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="date" stroke="#94a3b8" minTickGap={30} tickFormatter={(tick) => tick.substring(0, 4)} />
+                <YAxis stroke="#94a3b8" domain={['auto', 0]} tickFormatter={(tick) => tick + '%'} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <Line type="monotone" name={getLabel(1, sma1, sma1Unit) + " Drawdown"} dataKey="Strategy1Drawdown" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                {showStrat2 && <Line type="monotone" name={getLabel(2, sma2, sma2Unit) + " Drawdown"} dataKey="Strategy2Drawdown" stroke="#10b981" dot={false} strokeWidth={2} />}
+                {showStrat3 && <Line type="monotone" name={getLabel(3, sma3, sma3Unit) + " Drawdown"} dataKey="Strategy3Drawdown" stroke="#8b5cf6" dot={false} strokeWidth={2} />}
+                <Line type="monotone" name="Index Drawdown" dataKey="IndexDrawdown" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
               </LineChart>
             </ResponsiveContainer>
           </div>
