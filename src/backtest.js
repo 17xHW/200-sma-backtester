@@ -95,6 +95,7 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
   
   let outStart = filteredData[0].date;
   const outMarketPeriods = [];
+  const trades = [];
   
   let peakValue = cash;
   let maxDrawdown = 0;
@@ -125,6 +126,7 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
     if (crossUp && !inMarket) {
         inMarket = true;
         entryPrice = today.close;
+        trades.push({ type: 'BUY', date: today.date, price: entryPrice });
         if (outStart) {
             outMarketPeriods.push({ start: outStart, end: today.date });
             outStart = null;
@@ -137,6 +139,7 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
         // Apply leverage return for this last partial period
         const returnSinceEntry = (today.close - entryPrice) / entryPrice;
         cash = cash * (1 + (returnSinceEntry * leverage));
+        trades.push({ type: 'SELL', date: today.date, price: today.close, return: returnSinceEntry * leverage });
     }
 
     // Mark to market daily value
@@ -205,6 +208,7 @@ export function runBacktest(rawData, smaLength, smaUnit, leverage, errorMarginPc
   return {
     history,
     outMarketPeriods,
+    trades,
     metrics: {
       totalReturn,
       cagr,

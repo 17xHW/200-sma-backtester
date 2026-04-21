@@ -26,6 +26,7 @@ export default function App() {
   const [sma3Unit, setSma3Unit] = useState('days');
   const [sma3, setSma3] = useState(50);   
   
+  const [activeTab, setActiveTab] = useState(1);
   const [showStrat2, setShowStrat2] = useState(true);
   const [showStrat3, setShowStrat3] = useState(true);
   const [leverage, setLeverage] = useState(1);
@@ -75,6 +76,9 @@ export default function App() {
     return {
       history: mergedHistory,
       outMarketPeriods: res1.outMarketPeriods,
+      trades1: res1.trades,
+      trades2: res2 ? res2.trades : [],
+      trades3: res3 ? res3.trades : [],
       metrics1: res1.metrics,
       metrics2: res2 ? res2.metrics : null,
       metrics3: res3 ? res3.metrics : null
@@ -84,8 +88,13 @@ export default function App() {
   if (loading) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Loading dataset...</div>;
   if (!backtestResult) return <div style={{ color: 'white', textAlign: 'center', padding: '3rem' }}>Not enough data.</div>;
 
-  const { history, outMarketPeriods, metrics1, metrics2, metrics3 } = backtestResult;
+  const { history, outMarketPeriods, trades1, trades2, trades3, metrics1, metrics2, metrics3 } = backtestResult;
   
+  let activeTrades = [];
+  if (activeTab === 1) activeTrades = trades1;
+  if (activeTab === 2) activeTrades = trades2;
+  if (activeTab === 3) activeTrades = trades3;
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -271,6 +280,56 @@ export default function App() {
                 <Line type="monotone" name="Index Drawdown" dataKey="IndexDrawdown" stroke="#eab308" dot={false} strokeWidth={1} opacity={0.6} />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+
+          <div className="card" style={{ marginTop: '2rem' }}>
+            <h3>Trade Logs</h3>
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+              <button 
+                onClick={() => setActiveTab(1)} 
+                style={{ background: 'none', border: 'none', borderBottom: activeTab === 1 ? '2px solid #3b82f6' : 'none', color: activeTab === 1 ? '#3b82f6' : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                Strategy 1
+              </button>
+              {showStrat2 && (
+                <button 
+                  onClick={() => setActiveTab(2)} 
+                  style={{ background: 'none', border: 'none', borderBottom: activeTab === 2 ? '2px solid #10b981' : 'none', color: activeTab === 2 ? '#10b981' : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                  Strategy 2
+                </button>
+              )}
+              {showStrat3 && (
+                <button 
+                  onClick={() => setActiveTab(3)} 
+                  style={{ background: 'none', border: 'none', borderBottom: activeTab === 3 ? '2px solid #8b5cf6' : 'none', color: activeTab === 3 ? '#8b5cf6' : 'inherit', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                  Strategy 3
+                </button>
+              )}
+            </div>
+
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                  <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                    <tr style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ padding: '0.5rem' }}>Type</th>
+                      <th style={{ padding: '0.5rem' }}>Date</th>
+                      <th style={{ padding: '0.5rem' }}>Price</th>
+                      <th style={{ padding: '0.5rem' }}>Return Since Entry (After Leverage)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeTrades && activeTrades.length > 0 ? activeTrades.map((trade, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '0.5rem', color: trade.type === 'BUY' ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold' }}>{trade.type}</td>
+                        <td style={{ padding: '0.5rem' }}>{trade.date}</td>
+                        <td style={{ padding: '0.5rem' }}>{formatCcy(trade.price)}</td>
+                        <td style={{ padding: '0.5rem', color: trade.return > 0 ? 'var(--success)' : (trade.return < 0 ? 'var(--danger)' : 'inherit') }}>
+                           {trade.type === 'SELL' ? formatPct(trade.return) : '-'}
+                        </td>
+                      </tr>
+                    )) : <tr><td colSpan="4" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No trades executed in this period.</td></tr>}
+                  </tbody>
+              </table>
+            </div>
           </div>
           
         </main>
