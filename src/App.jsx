@@ -40,8 +40,8 @@ export default function App() {
   const [sma3, setSma3] = useState(50);   
   
   const [activeTab, setActiveTab] = useState(1);
-  const [showStrat2, setShowStrat2] = useState(true);
-  const [showStrat3, setShowStrat3] = useState(true);
+  const [showStrat2, setShowStrat2] = useState(false);
+  const [showStrat3, setShowStrat3] = useState(false);
   const [leverage, setLeverage] = useState(1);
   const [errorMargin, setErrorMargin] = useState(0); 
   const [startDate, setStartDate] = useState('2000-01-01');
